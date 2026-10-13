@@ -2,26 +2,32 @@
 
 The roadmap validates the riskiest runtime assumptions before broad implementation. Durations are single-engineer engineering time and exclude the product UI, data connector suite, and any decision to port Auto-Editor analysis.
 
-## Phase 0: C++/MLT vertical slice
+## Phase 0: Linux C++/MLT vertical slice
 
-**Estimate: 1–2 weeks.**
+**Status: passed in Ubuntu 24.04.4 / MLT 7.22.0.**
 
-Build with CMake against a pinned MLT/MLT++ version on Windows. From C++ construct:
+The C++/MLT++ proof of concept creates two color clips, a 15-frame dissolve, and a `qtext` filter; renders H.264 through the MLT `avformat` consumer; serializes MLT XML; then reloads and renders that XML.
 
-- Two video tracks and one independent audio track.
-- Local MP4/WAV sources with independent source in/out and timeline placement.
-- One dissolve, one fade, one volume change, and one title using the target Shotcut-compatible service.
-- One alpha video generated outside MLT as a HyperFrames stand-in/fixture.
-- An `avformat` MP4 consumer and an MLT XML consumer/output.
+Acceptance passed:
 
-Acceptance:
+- 640x360 progressive output at 30/1 fps, 165 frames, 5.5 seconds.
+- Decoded frame hashes match exactly between the direct graph and reloaded MLT XML.
+- Title and dissolve are visible in extracted frames.
+- The Linux build links MLT++ directly; the `melt` CLI is not required.
 
-- Rendered duration, frame rate, audio duration, alpha composite, and transition boundaries match the expected fixture.
-- `.mlt` opens in the pinned Shotcut version; edit a title and track order, save, close, reopen, and render again.
-- The worker starts on a clean Windows environment with its packaged modules/resources and no developer PATH assumptions.
-- Progress, cancellation, and error handling are demonstrated with the chosen consumer/API.
+The detailed environment and command are in [the WSL render report](wsl-mlt-render-poc.md).
 
-**Stop condition:** if text compatibility, plugin deployment, or timing cannot be made deterministic, revise the design before implementing the Project compiler.
+## Phase 0.5: Linux feature matrix
+
+Four independent CTest programs now exercise timeline/dissolve/XML reload, tone mixing, qtext opacity keyframes, and a semi-transparent qtext overlay. All four currently pass on the Ubuntu 24.04 / MLT 7.22 environment. See [the feature-test report](linux-feature-tests.md).
+
+Remaining validation before freezing the compiler contract:
+
+- The audio tone's configured `level` does not yet produce the expected output attenuation; single-tone and mixed-tone renders measure at nearly the same peak. Treat gain/limiting semantics as unresolved.
+- The alpha case uses a qtext-generated transparent overlay, not an external alpha video from HyperFrames.
+- Shotcut GUI editing/save/reopen has not been exercised yet.
+
+Resolve these behaviors with focused tests before locking Project-to-MLT mappings.
 
 ## Phase 1: Project package and validation
 
@@ -43,13 +49,13 @@ Call the pinned `@hyperframes/producer` runtime with validated template inputs. 
 
 Add OTIO output for supported tracks, clips, gaps, transitions, markers, and speed. Test imports in named target applications. Report effects/metadata that are not portable. OTIO is not a gate for MP4 or Shotcut delivery.
 
-## Phase 6: Packaging and release hardening
+## Phase 6: Linux packaging and release hardening
 
-Pin the MLT/FFmpeg/Qt/Pango module matrix. Build installers for the declared Windows release matrix, inventory licenses, test on a clean machine, and verify project relocation/relinking. Add CI fixtures for duration, frame hashes, audio levels, missing resources, and version migrations.
+Pin the MLT/FFmpeg/Qt/Pango module matrix. Select the supported Linux distribution/runtime strategy, inventory licenses, test the package in a clean Linux environment, and verify project relocation/relinking. Add CI fixtures for duration, frame hashes, audio levels, missing resources, and version migrations.
 
 ## Rough overall estimate
 
-For an MVP backend covering Project-to-MLT compilation, MP4 rendering, editable Shotcut export, basic text, multitrack audio/video, and Windows packaging: **roughly 8–14 engineering weeks after the spike**, for one experienced C++/media engineer. OTIO export may add **2–4 weeks** depending on required target applications and effect mapping. A front end, data connectors, or a replacement for Auto-Editor analysis is additional scope.
+For an MVP backend covering Project-to-MLT compilation, MP4 rendering, editable Shotcut export, basic text, multitrack audio/video, and Linux packaging: **roughly 8–14 engineering weeks after the feature spike**, for one experienced C++/media engineer. OTIO export may add **2–4 weeks** depending on required target applications and effect mapping. A front end, data connectors, or a replacement for Auto-Editor analysis is additional scope.
 
 ## Definition of MVP
 
@@ -58,4 +64,4 @@ For an MVP backend covering Project-to-MLT compilation, MP4 rendering, editable 
 - Basic text is native/editable in Shotcut where declared supported.
 - HyperFrames scenes are traceable generated assets and composite correctly.
 - Unsupported or degraded effects are reported before export.
-- Clean Windows installation can render without development tools installed.
+- A clean Linux runtime package can render without development tools installed.

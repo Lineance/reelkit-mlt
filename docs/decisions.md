@@ -44,9 +44,9 @@ Pin a target Shotcut/MLT version and generate `.mlt` structures from small Shotc
 
 Decide separately whether silence/scene/motion analysis is an MVP feature. If required, port or replace just that capability behind `media` services; do not make the renderer depend on the Auto-Editor codebase.
 
-### Target release matrix
+### Linux target matrix
 
-Choose Windows versions, CPU/GPU requirements, supported codecs, and whether the product ships a selected MLT module bundle or requires a separately installed runtime.
+Choose the initial Linux distribution baseline (currently Ubuntu 24.04), CPU/GPU requirements, supported codecs, and whether the product bundles a selected MLT module set or requires a separately installed runtime. WSL Ubuntu is the current development/test environment; native Linux device, GPU, and package behavior remains to be verified.
 
 ### Native title subset
 

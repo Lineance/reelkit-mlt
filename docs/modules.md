@@ -90,7 +90,7 @@ editor-core/
 
 - Pin MLT, FFmpeg, Qt/Pango, and module versions for builds.
 - Select an explicit runtime module allowlist; set MLT module/profile/preset paths deterministically.
-- Create the Windows distribution with required DLL dependencies and verify clean-machine startup without relying on developer PATH.
+- Package Linux shared libraries, selected MLT `.so` modules, profiles, presets, and support files; test startup in a clean Linux environment without developer PATH assumptions.
 - Produce license inventory for MLT and every bundled module/dependency; exclude optional modules unless needed.
 
 ## Dependency direction

@@ -80,7 +80,7 @@ Use MLT++ directly from the C++ backend. The compiler creates producers and play
 
 - MP4 output uses the MLT `avformat` consumer and a pinned render profile. MLT's avformat module depends on FFmpeg; retaining FFmpeg is expected.
 - Shotcut output serializes a compatible MLT graph to `.mlt`. Use Shotcut-authored golden projects for title filters, project properties, and version-specific structure.
-- MLT dynamic service modules must be discoverable at runtime. The installer must package the selected modules, profiles, presets, dependent DLLs, and required support files, and initialize MLT with deterministic paths.
+- MLT dynamic service modules must be discoverable at runtime. The Linux package must include the selected `.so` modules, profiles, presets, dependent shared libraries, and required support files, and initialize MLT with deterministic paths.
 - Render jobs need progress, cancellation, structured diagnostics, and a deterministic profile/resource configuration. These are product-layer services around the MLT consumer.
 
 Do not make the production pipeline depend on invoking `melt` as an opaque subprocess. `melt` remains useful for smoke tests and developer diagnosis. The application backend should call MLT++ directly; it may run in a dedicated worker process to isolate plugin loading and render failures from the UI.

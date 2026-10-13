@@ -14,7 +14,7 @@ It does not process user media and is not the Project compiler or production ren
 - MLT/MLT++ 7.22.0
 - FFmpeg 6.1.1
 
-The generic `bash` tool in this session still resolves to MSYS/Git Bash. Run Linux commands through the explicit WSL shell.
+The test runs in Ubuntu 24.04.4 under WSL 2 as the current Linux development environment.
 
 ## Build and run
 
@@ -58,5 +58,5 @@ No FFmpeg timestamp warnings remained after disabling audio for this video-only 
 - Opening, editing, saving, and reopening the generated project in the Shotcut GUI. This WSL test only reopens it through MLT itself.
 - Audio tracks, audio mixing, source media with audio, and audio timestamp behavior.
 - User-provided Project packages, Asset ID resolution, project-relative packaging, fonts beyond the installed Ubuntu set, and path relocation.
-- Windows-native MLT module/DLL packaging, GPU paths, and compatibility with a pinned Shotcut release.
+- Native Linux package installation across distributions, GPU drivers/audio devices, and launching the target Shotcut GUI to open/edit/save/reopen the project.
 - The MLT version shipped by the eventual application. This result is specific to the Ubuntu 24.04 package version 7.22.0.
