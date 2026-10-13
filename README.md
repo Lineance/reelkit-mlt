@@ -1,6 +1,6 @@
 # Editor Core
 
-A local-first, MLT-centered video project engine. This repository is currently an architecture plan; implementation starts after the MLT proof of concept passes.
+A local-first, MLT-centered video project engine. This repository contains the architecture plan and an initial direct-render proof of concept; the Project compiler and production engine are not implemented yet.
 
 ## Direction
 
@@ -20,4 +20,4 @@ A local-first, MLT-centered video project engine. This repository is currently a
 
 ## Initial milestone
 
-Build a small C++/MLT++ application that creates a multitrack graph, renders an MP4, writes an MLT XML project, and passes a Shotcut open/edit/save/reopen check on Windows. Do not begin a broad engine rewrite until this vertical slice validates the runtime, text filters, packaging, and media behavior.
+The first direct C++/MLT++ slice now builds and renders in WSL Ubuntu 24.04 using MLT 7.22, then reopens the generated MLT XML and renders it again. See [the validation report](docs/wsl-mlt-render-poc.md). The next milestone is a typed Project-to-MLT compiler, not broad feature implementation.
