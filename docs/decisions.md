@@ -1,68 +1,57 @@
 # Decisions
 
-Status values: **Accepted** means the current plan assumes the decision; **Proposed** means it is the recommended default pending a proof or owner confirmation; **Open** means implementation should not lock it yet.
+Status values: **Accepted** means the current implementation follows the choice; **Proposed** means it is the selected default for v1 unless testing disproves it; **Open** means it remains a later product decision.
 
 ## Accepted
 
-### Project is the upstream source of truth
+### editor-core is a C++ library over MLT++
 
-The Project package owns assets, data snapshots, template references, HTML scene sources, semantic timeline objects, and render provenance. MLT XML, MP4, and OTIO are generated artifacts. There is no automatic reverse sync from Shotcut in v1.
+It is not a standalone NLE, Project authoring application, worker service, or Project JSON runtime. It provides a convenient API over MLT++ and lets callers use native MLT++ on the same graph.
 
-### No Nim foundation
+### Composition wrappers with explicit `native()`
 
-The new engine is not based on Nim or Auto-Editor. Prior work can be retained as migration/reference material but is not a dependency of `editor-core`.
+High-level Runtime/Profile/Track/Timeline wrappers own or share actual MLT++ objects and expose explicit native references. Convenience methods mutate those same objects. The library does not subclass every MLT++ type or maintain a parallel timeline IR.
 
-### MLT is the timeline execution and render engine
+### Native MLT XML persistence is included
 
-The C++ backend calls MLT++ directly. It uses MLT producers/playlists/tractors/filters/transitions/consumers to execute a compiled Project timeline, render MP4, and emit editable MLT XML for Shotcut.
+The library can save/load generic MLT XML and use XML snapshots to create fresh render graphs. This is engine graph serialization, not a promise of compatibility with a specific editor GUI.
 
-### FFmpeg remains a dependency
+### Linux only
 
-MLT's avformat module uses FFmpeg for media IO and encoding. FFmpeg can also back explicit probing, analysis, proxy, or specialized media utilities. The engine should not remove FFmpeg merely to adopt MLT.
+Initial development/runtime baseline is Ubuntu 24.04 with MLT/MLT++ 7.22.0. No Windows build or release target is in scope.
 
-### HTML animation remains an external renderer
+### FFmpeg remains
 
-`@hyperframes/producer` renders HTML/CSS/GSAP scenes into deterministic alpha media. MLT composites these outputs as regular assets.
+MLT's avformat module uses FFmpeg; adopting this wrapper does not remove FFmpeg.
+
+### Project JSON is a separate upper-layer adapter
+
+A future application may compile Project JSON into editor-core calls and persist its own data/template/Asset ID metadata. Project JSON is not required by the library and must not duplicate the live MLT graph as a second source of truth.
 
 ## Proposed
 
-### OTIO is optional downstream interchange
+### Explicit C++ native handles are the interop boundary
 
-The OTIO exporter maps supported timeline concepts from the normalized Project compilation input. It does not sit between Project and MLT, and it is not a prerequisite for rendering. Maintain a loss/capability report.
+Use references such as `Track::native() -> Mlt::Playlist&`. Raw MLT++ calls remain possible in the same code, and changes affect the same object. Native references are valid only while the owning wrapper/runtime remains alive.
 
-### MLT worker is a separate process
+### Render each output from a fresh MLT graph snapshot
 
-Use a C++ worker linked to MLT++ with a versioned local JSON protocol. This isolates dynamic plugin loading and render failures from a future UI. The first spike can compare this model with direct in-process library ownership before finalizing IPC.
+Serialize the current graph through MLT XML in memory, reload with `xml-string`, and connect one consumer to that snapshot. This avoids reusing consumer-mutated audio graph objects; tests must cover audio XML round trips before treating the behavior as release-stable.
 
-### Use fixture-driven Shotcut compatibility
+### C++20 and CMake package
 
-Pin a target Shotcut/MLT version and generate `.mlt` structures from small Shotcut-authored golden projects. Do not infer private filter properties from names alone.
+Use C++20, an exported `editor_core::editor_core` CMake target, and the system MLT++ package. Source/API compatibility is versioned; no cross-MLT binary ABI guarantee is made.
 
-## Open
+## Open for Later Adapters
 
-### Automatic edit analysis
+- Project JSON schema and data/template/asset package.
+- OTIO interchange mapping and loss reports.
+- HyperFrames execution adapter; core only accepts its generated alpha media as a producer.
+- Shotcut/Kdenlive GUI-specific project guarantees; generic MLT XML does not imply GUI conformance.
+- Optional Frei0r/LADSPA/OpenFX plugin bundles and their licensing.
 
-Decide separately whether silence/scene/motion analysis is an MVP feature. If required, port or replace just that capability behind `media` services; do not make the renderer depend on the Auto-Editor codebase.
+## Known Runtime Limitations
 
-### Linux target matrix
-
-Choose the initial Linux distribution baseline (currently Ubuntu 24.04), CPU/GPU requirements, supported codecs, and whether the product bundles a selected MLT module set or requires a separately installed runtime. WSL Ubuntu is the current development/test environment; native Linux device, GPU, and package behavior remains to be verified.
-
-### Native title subset
-
-Define the v1 subset of Text Simple/Rich, Pango/Qt title services, keyframes, and subtitles only after the Shotcut fixture test. Complex browser scenes remain pre-rendered.
-
-### OTIO adapter scope
-
-Choose target external applications and test actual import behavior before promising that MLT filters or native titles survive OTIO export.
-
-### In-process vs worker IPC
-
-The worker process is preferred for fault isolation, but the first render spike should measure API requirements for progress, cancellation, preview, and memory before freezing the process boundary.
-
-## Rejected for now
-
-- Use OTIO as the only Project container: it does not own the data/template/package lifecycle required by this product.
-- Route rendering through `Project -> OTIO -> MLT`: OTIO does not preserve all MLT-specific services and adds a lossy conversion step.
-- Rewrite HTML/CSS/GSAP rendering in MLT: HyperFrames remains the dedicated scene renderer.
-- Treat `.mlt` as the authoritative Project: it is an engine/editor serialization, not the complete domain package or template/data history.
+- MLT 7.22 `avformat` PCM16 WAV output does not preserve the tested producer level, while float PCM/AAC paths preserve it. High-level presets therefore prefer AAC or float WAV and report the PCM16 caveat.
+- Sequentially attaching multiple consumers to the same audio graph caused a segmentation fault in a test; render from a fresh MLT XML snapshot per output.
+- GPU/native audio device behavior and native Linux packaging beyond Ubuntu/WSL remain unverified.

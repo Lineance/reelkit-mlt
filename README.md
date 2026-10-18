@@ -1,24 +1,58 @@
-# Editor Core
+# editor-core
 
-A local-first, MLT-centered video project engine. This repository contains the architecture plan and an initial direct-render proof of concept; the Project compiler and production engine are not implemented yet.
+`editor-core` is a Linux-first C++20 convenience library over MLT++. It keeps MLT services and object graphs native while adding safer ownership, frame-range helpers, timeline construction, render presets, and an explicit `native()` escape hatch.
 
-## Direction
+It is a library, not a full editor application. It does not require Project JSON, a UI, a workflow engine, Shotcut, or OTIO.
 
-- Project package is the authoritative source for assets, timeline intent, templates, data snapshots, and generated-scene provenance.
-- A C++ backend uses MLT++ directly to construct timeline graphs, render MP4 through MLT consumers, and emit editable Shotcut `.mlt` projects.
-- FFmpeg remains a first-class dependency through MLT's `avformat` module and may also support probing, analysis, proxy, and utility tasks. There is no goal to remove FFmpeg.
-- OTIO is an optional interoperability export, generated from the same compiled timeline representation. It is not the project container or render engine.
-- `@hyperframes/producer` remains the HTML/CSS/GSAP scene renderer. Its alpha output is a regular Project asset and MLT track source.
-- Nim and Auto-Editor are not the foundation for this new core. Legacy timeline import or analysis reuse is a separate decision.
+## Design
 
-## Documents
+- High-level wrappers and direct MLT++ calls mutate the same underlying object graph.
+- Public `FrameRange` values are half-open; conversion to MLT's inclusive out-frame happens at the API boundary.
+- Generic MLT XML load/save is available for persistence and graph snapshots.
+- FFmpeg remains in the stack through MLT's `avformat` module.
+- Project JSON can be implemented later as a separate adapter that calls this library.
 
-- [Architecture](docs/architecture.md): system boundaries, data flow, Project package, and renderer roles.
-- [Modules](docs/modules.md): proposed C++ module responsibilities and dependency rules.
-- [Roadmap](docs/roadmap.md): proof of concept, acceptance gates, risks, and rough estimates.
-- [Linux feature tests](docs/linux-feature-tests.md): independent CTest scenarios, results, and known gaps.
-- [Decisions](docs/decisions.md): accepted direction and unresolved choices.
+## Current API
 
-## Initial milestone
+- `Runtime`: process-scoped MLT factory and service discovery.
+- `Profile`: frame size/rate/aspect and MLT profile access.
+- `Timeline` and `Track`: wrappers over a MLT `Tractor` and `Playlist`.
+- `FrameRange`: typed source in/out values with half-open semantics.
+- `RenderSpec`: MP4/AAC, M4A/AAC, and float-WAV presets plus raw consumer properties.
+- `MltDocument`: load and operate on generic MLT XML graphs.
+- `native()`: returns a reference to the same `Mlt::` object owned by the wrapper.
 
-The first direct C++/MLT++ slice now builds and renders in WSL Ubuntu 24.04 using MLT 7.22, then reopens the generated MLT XML and renders it again. See [the render report](docs/wsl-mlt-render-poc.md). The current next milestone is the independent [Linux feature-test suite](docs/linux-feature-tests.md), before freezing the Project-to-MLT compiler contract.
+See [API guide](docs/api.md), [architecture](docs/architecture.md), [modules](docs/modules.md), and [Linux feature tests](docs/linux-feature-tests.md).
+
+## Build
+
+Ubuntu 24.04 is the current tested baseline. Required packages:
+
+```bash
+sudo apt update
+sudo apt install build-essential cmake ninja-build pkg-config ffmpeg libmlt-dev libmlt++-dev libmlt-data
+```
+
+Build and test:
+
+```bash
+cmake -S . -B build -G Ninja
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+The library installs a CMake package named `EditorCore` and target `editor_core::editor_core`:
+
+```bash
+cmake --install build --prefix build/stage
+```
+
+A downstream CMake consumer test is included in CTest.
+
+## Scope
+
+The core exposes MLT services rather than reimplementing their effects. Optional MLT modules are discovered at runtime; only install effect bundles when a defined feature needs them. PCM16 WAV level behavior is not yet supported by the high-level presets; float WAV and AAC output are tested. Shotcut/NLE GUI compatibility and application-level Project JSON are separate work.
+
+## Current Status
+
+The C++/MLT++ facade, native interop test, generic MLT XML round-trip, render presets, and Linux CMake install target are implemented. The current CTest suite is the executable API contract.

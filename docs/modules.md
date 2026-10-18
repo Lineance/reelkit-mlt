@@ -1,119 +1,97 @@
 # Module Design
 
-The module boundaries below describe responsibilities, not final filenames. Keep the Project model independent of MLT classes and UI framework types.
+The implementation is organized as a C++ library with separate public headers and source modules. The high-level layer wraps live MLT++ objects; there is no mirrored Project timeline model in the core.
 
-## Proposed layout
-
-```text
-editor-core/
-  CMakeLists.txt
-  include/editor_core/
-    project/
-    timeline/
-    jobs/
-  src/
-    app/                 # local worker entry point and protocol
-    project/             # package IO, schema validation, migration
-    assets/              # resolve, hash, package, relink
-    timeline/            # normalized IR and validation
-    media/               # probe, analysis, proxies, FFmpeg utilities
-    mlt/                 # MLT++ graph builder, renderer, XML serialization
-    otio/                # optional interchange serializer
-    scenes/              # HyperFrames process adapter
-    jobs/                # progress, cancellation, diagnostics
-    packaging/           # profile/module lookup and resource paths
-  tests/
-    fixtures/
-      projects/
-      mlt/
-      otio/
-      media/
-```
-
-## Modules
-
-### `project`
-
-- Read/write the versioned Project package and validate schema before work begins.
-- Own domain structs: `Project`, `DatasetRef`, `TemplateRef`, `Asset`, `Track`, `Clip`, `TextLayer`, `SubtitleCue`, `Transition`, `Effect`, `RenderProfile`.
-- Preserve stable IDs, provenance, schema migrations, and data/template snapshots.
-- Must not include `Mlt::` classes, FFmpeg structs, or Shotcut property names in public domain types.
-
-### `assets`
-
-- Resolve `AssetId` to a local file URI and verify existence/hash/metadata.
-- Package or relink media/font/generated assets into a portable project export.
-- Enforce project-root and allowed-directory rules; do not fetch arbitrary remote resources.
-
-### `timeline`
-
-- Convert Project semantics to a validated normalized IR using integer frames/rational rates.
-- Apply ordering, source trims, layer/z-order, overlap, transition, and duration rules once.
-- Produce capability diagnostics before invoking any renderer.
-- Provide the common input to MLT compilation and optional OTIO export; do not own persistence.
-
-### `mlt`
-
-- Initialize `Mlt::Factory` with explicit module/resource paths.
-- Map normalized clips to MLT producers and playlist entries; compose parallel tracks with multitrack/tractor/field and explicit transitions.
-- Map supported transform, volume, fade, subtitle, and title properties using pinned MLT/Shotcut fixtures.
-- Connect the final graph to an `avformat` consumer for MP4; configure codec/profile properties through typed render settings.
-- Serialize a Shotcut-compatible MLT XML graph and associate the package resource paths.
-- Translate MLT callbacks/errors into structured job events.
-
-### `media`
-
-- Probe stream duration, frame rate, dimensions, audio layout, and codec information.
-- Offer optional scene/audio analysis, proxies, thumbnails, and direct FFmpeg utility operations.
-- Do not build a second authoritative timeline renderer. Analysis can propose edits but cannot silently mutate a saved Project.
-
-### `scenes`
-
-- Invoke `@hyperframes/producer` with a pinned version, trusted component path, validated data snapshot, and deterministic render settings.
-- Return a generated asset descriptor including content hash, fps, dimensions, duration, alpha capability, and source provenance.
-- Handle job progress/cancel/error without implementing browser capture or HTML animation.
-
-### `otio`
-
-- Export the supported subset of normalized timeline items to OTIO schema objects.
-- Preserve stable IDs and explicitly namespaced metadata where appropriate.
-- Report unsupported MLT-only services and any flattening or omission.
-- Remain optional; no OTIO library is required by the render path.
-
-### `jobs` and `app`
-
-- Expose structured commands such as `validateProject`, `render`, `exportMlt`, `exportOtio`, `probeMedia`, and `renderScene`.
-- Return job IDs, progress events, cancellation state, artifact paths, and diagnostics.
-- Prefer a dedicated C++ worker executable linked to MLT++ over loading MLT modules into a UI process. Use a versioned local IPC protocol (initially JSON lines over stdio is sufficient) so engine crashes and plugin state do not corrupt the UI.
-
-### `packaging`
-
-- Pin MLT, FFmpeg, Qt/Pango, and module versions for builds.
-- Select an explicit runtime module allowlist; set MLT module/profile/preset paths deterministically.
-- Package Linux shared libraries, selected MLT `.so` modules, profiles, presets, and support files; test startup in a clean Linux environment without developer PATH assumptions.
-- Produce license inventory for MLT and every bundled module/dependency; exclude optional modules unless needed.
-
-## Dependency direction
+## Public Headers
 
 ```text
-app/jobs -> project -> timeline
-app/jobs -> assets
-app/jobs -> media
-app/jobs -> scenes
-app/jobs -> mlt -> normalized timeline + assets
-app/jobs -> otio -> normalized timeline + assets
-packaging -> mlt runtime deployment
+include/editor_core/
+  editor_core.hpp   # umbrella include
+  types.hpp         # errors, profiles, rational rates, frame ranges, track kinds
+  runtime.hpp       # MLT factory lifetime and service discovery
+  profile.hpp       # Profile wrapper and native() access
+  track.hpp         # Playlist wrapper and clip/filter helpers
+  timeline.hpp      # Tractor wrapper and multi-track helpers
+  render.hpp        # render specs/results and MLT XML document wrapper
 ```
 
-`project`, `timeline`, and `assets` are independent of MLT. `media` can use FFmpeg directly, but its analysis results are data supplied to Project operations rather than hidden renderer state.
+## Source Modules
 
-## Worker boundary
+```text
+src/
+  types.cpp
+  runtime.cpp
+  profile.cpp
+  track.cpp
+  timeline.cpp
+  render.cpp
+  mlt_document.cpp
+  detail/state.hpp  # shared internal state definitions; not public API
+```
 
-The worker owns MLT initialization, render consumer lifetime, and all module paths. The UI talks in Project IDs and structured commands, not MLT XML or shell command strings. The worker may use internal threads for MLT rendering; only one layer owns cancellation and job state. Direct `melt` invocation is reserved for diagnostics and test comparisons.
+## Core Types
 
-## Public compatibility surface
+### Runtime
 
-- Stable project format and JSON command protocol are versioned independently from MLT and OTIO versions.
-- A `CapabilityReport` lists supported, degraded, and unsupported timeline features for a requested output.
-- `RenderResult` lists artifact IDs, duration/profile, hashes, logs, warnings, and source Project revision.
-- No public API exposes mutable MLT service property bags as the general authoring model.
+- Initialize `Mlt::Factory` once per process and retain the MLT repository while any editor-core objects exist.
+- Share one Runtime state across copied Runtime handles; reject conflicting module directories in one process.
+- Expose producer/filter/transition/consumer service discovery and `nativeRepository()` for advanced MLT++ use.
+- Ensure all editor-core MLT objects retain Runtime state for their lifetime.
+
+### Profile
+
+- Store width, height, rational frame rate, sample/display aspect, progressive flag, and optional colorspace.
+- Own one `Mlt::Profile`; expose `native()` and profile settings.
+- Timeline, Track, and MLT documents retain the shared profile state.
+
+### Track
+
+- Own/share a `Mlt::Playlist` and identify its index/kind/name within a Timeline.
+- `append(Mlt::Producer&, FrameRange)` directly appends a native producer.
+- `appendFile()` creates a file-backed MLT producer and appends it using the same path.
+- `blank()` accepts a frame count and translates to MLT's inclusive duration convention.
+- `dissolve()` is a convenience over `Playlist::mix`; `mixAdjacent()` accepts a native MLT Transition.
+- `attach(Mlt::Filter&)` and `native()` expose the same playlist service.
+- `addText()` creates a qtext MLT filter and returns the native filter handle for further animation/property calls.
+
+### Timeline
+
+- Own a `Mlt::Tractor` plus shared Track handles.
+- `addTrack()` uses current native track count so raw `Tractor::set_track()` and high-level additions do not overwrite one another.
+- `setNativeTrack()` and `plantTransition()` support direct MLT++ calls.
+- `durationFrames()` refreshes and queries the underlying tractor.
+- `native()` returns the same live `Mlt::Tractor`.
+
+### Render and MLT XML
+
+- `RenderSpec` has MP4/H.264/AAC, M4A/AAC, and float-WAV presets plus a string property map for consumer options.
+- `Timeline::render()` snapshots the live graph to MLT XML in memory, reloads a fresh `xml-string` producer, then renders with a new `avformat` consumer.
+- `Timeline::saveMltXml()` writes the graph; `MltDocument::load()` loads generic MLT XML into a native producer wrapper.
+- `RenderResult` reports target, frame count, rational frame rate, duration, and warnings.
+
+## Dependency Direction
+
+```text
+editor-core native facade -> libmlt++ -> libmlt modules -> FFmpeg/other module deps
+host application -> editor_core::editor_core
+optional editor_project adapter -> editor_core API
+optional OTIO/HyperFrames adapters -> host application + editor-core as needed
+```
+
+The library does not depend on Project JSON, a UI framework, a workflow engine, Shotcut, OTIO, or HyperFrames.
+
+## Native Interoperability Contract
+
+- All `native()` methods return references to the exact MLT++ objects owned by editor-core wrappers.
+- No copy/translation occurs when crossing from high-level helpers to raw MLT++.
+- Host code must not retain a native reference beyond the lifetime of its owning Runtime/Profile/Track/Timeline handle.
+- Raw MLT services/properties remain available even if the convenience API does not model their parameters.
+- Each render uses a fresh graph snapshot to avoid reusing consumer-mutated MLT audio graph state.
+
+## Build and Installation
+
+- CMake target: `editor_core::editor_core`.
+- Build against `pkg-config` module `mlt++-7`.
+- Install headers, static library, exported CMake targets, and `EditorCoreConfig.cmake`.
+- No stable binary ABI is promised across MLT versions; consumers build against the declared MLT 7 runtime.
+- Do not bundle optional plugin packs unless a named API feature requires them and the license/dependency inventory is complete.

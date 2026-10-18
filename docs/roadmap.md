@@ -1,67 +1,44 @@
 # Roadmap
 
-The roadmap validates the riskiest runtime assumptions before broad implementation. Durations are single-engineer engineering time and exclude the product UI, data connector suite, and any decision to port Auto-Editor analysis.
+The goal is a reusable Linux C++ library over MLT++, not a full video application. Milestones are separate implementation commits. Durations are rough single-engineer estimates.
 
-## Phase 0: Linux C++/MLT vertical slice
+## Phase 0: Runtime proof — passed
 
-**Status: passed in Ubuntu 24.04.4 / MLT 7.22.0.**
+Ubuntu 24.04/MLT 7.22 builds with CMake and links `libmlt++-7` directly. A synthetic timeline renders H.264, saves MLT XML, reloads it through MLT, and produces identical decoded frame hashes.
 
-The C++/MLT++ proof of concept creates two color clips, a 15-frame dissolve, and a `qtext` filter; renders H.264 through the MLT `avformat` consumer; serializes MLT XML; then reloads and renders that XML.
+## Phase 1: Native-compatible API foundation — implemented
 
-Acceptance passed:
+Runtime, Profile, FrameRange, Track, Timeline, RenderSpec, MltDocument, and explicit `native()` handles are in separate headers/source modules. The native interop CTest proves raw producer/filter calls and high-level methods mutate the same graph.
 
-- 640x360 progressive output at 30/1 fps, 165 frames, 5.5 seconds.
-- Decoded frame hashes match exactly between the direct graph and reloaded MLT XML.
-- Title and dissolve are visible in extracted frames.
-- The Linux build links MLT++ directly; the `melt` CLI is not required.
+## Phase 2: Render and serialization contract — current
 
-The detailed environment and command are in [the WSL render report](wsl-mlt-render-poc.md).
+Finalize graph snapshotting, MLT XML load/save, service discovery, and CMake package consumption. Add lifecycle tests for wrapper references, raw MLT mutation, and one-consumer-per-snapshot behavior.
 
-## Phase 0.5: Linux feature matrix
+Gate: an installed downstream CMake project can find `EditorCore`, link `editor_core::editor_core`, build a timeline, render, and load/save generic MLT XML.
 
-Four independent CTest programs now exercise timeline/dissolve/XML reload, tone mixing, qtext opacity keyframes, and a semi-transparent qtext overlay. All four currently pass on the Ubuntu 24.04 / MLT 7.22 environment. See [the feature-test report](linux-feature-tests.md).
+## Phase 3: Common convenience API
 
-Remaining validation before freezing the compiler contract:
+Extend high-level operations for clip trims/speed, transition presets, qtext keyframes/geometry, audio routing/mix, and typed render profiles. All helpers must mutate native MLT services and retain the native escape hatch. Do not implement duplicate effects already available as MLT services.
 
-- The audio tone's configured `level` does not yet produce the expected output attenuation; single-tone and mixed-tone renders measure at nearly the same peak. Treat gain/limiting semantics as unresolved.
-- The alpha case uses a qtext-generated transparent overlay, not an external alpha video from HyperFrames.
-- Shotcut GUI editing/save/reopen has not been exercised yet.
+Gate: CTest verifies behavior, serialization, rendered frame/audio metrics, and service availability. Gate PCM16 WAV support on correct levels; retain AAC and float WAV support meanwhile.
 
-Resolve these behaviors with focused tests before locking Project-to-MLT mappings.
+## Phase 4: Linux package hardening
 
-## Phase 1: Project package and validation
+Test install/export CMake config on clean Ubuntu 24.04. Pin supported MLT 7 version(s), document module paths, expose service capability discovery, inventory bundled module licenses, and add tests for absent modules and invalid media.
 
-Define the Project JSON schema, asset manifest, stable IDs, frame/rational-time rules, template/data provenance, migrations, and package/relink behavior. Add schema validation, diagnostics, and deterministic serialization. Keep Project types independent from MLT.
+## Phase 5: Optional adapters
 
-## Phase 2: MLT compiler and MP4 render
+If a host application needs them, add separate Project JSON, OTIO, or HyperFrames adapters. They call editor-core APIs and remain outside the core library dependency surface.
 
-Implement normalized Timeline IR and MLT++ graph construction for video/audio clips, gaps, multitrack composition, trims, speed, transforms, volume, fades, and a small transition set. Add render jobs, profiles, cancellation, progress, error mapping, and golden frame/audio tests. Expand only after fixture coverage is reliable.
+## Rough Estimate
 
-## Phase 3: Shotcut project packaging and native titles
+The current implementation establishes the API skeleton and native interop test. Completing a stable v1 library (ownership/lifecycle, profile/time helpers, common timeline/effect helpers, rendering, generic XML persistence, CMake install validation, audio format checks) is estimated at **4–7 additional engineering weeks** for one C++/media engineer. Project JSON or application features are separate scope.
 
-Generate editable `.mlt` from the compiled graph. Add relative media/font paths, resource packaging, XML structure tests, target-version fixtures, and explicit capability reports. Validate that title objects remain editable, not flattened.
+## v1 Acceptance
 
-## Phase 4: HyperFrames scene adapter
-
-Call the pinned `@hyperframes/producer` runtime with validated template inputs. Persist the output asset hash and scene provenance; consume the alpha output in the MLT timeline. Add duration/fps/alpha/audio-sync and CJK tests.
-
-## Phase 5: Optional OTIO and additional interoperability
-
-Add OTIO output for supported tracks, clips, gaps, transitions, markers, and speed. Test imports in named target applications. Report effects/metadata that are not portable. OTIO is not a gate for MP4 or Shotcut delivery.
-
-## Phase 6: Linux packaging and release hardening
-
-Pin the MLT/FFmpeg/Qt/Pango module matrix. Select the supported Linux distribution/runtime strategy, inventory licenses, test the package in a clean Linux environment, and verify project relocation/relinking. Add CI fixtures for duration, frame hashes, audio levels, missing resources, and version migrations.
-
-## Rough overall estimate
-
-For an MVP backend covering Project-to-MLT compilation, MP4 rendering, editable Shotcut export, basic text, multitrack audio/video, and Linux packaging: **roughly 8–14 engineering weeks after the feature spike**, for one experienced C++/media engineer. OTIO export may add **2–4 weeks** depending on required target applications and effect mapping. A front end, data connectors, or a replacement for Auto-Editor analysis is additional scope.
-
-## Definition of MVP
-
-- Project validates, saves, reopens, and resolves packaged media by stable Asset ID.
-- Same Project revision produces both MP4 and `.mlt` with matching clip timing and supported effects.
-- Basic text is native/editable in Shotcut where declared supported.
-- HyperFrames scenes are traceable generated assets and composite correctly.
-- Unsupported or degraded effects are reported before export.
-- A clean Linux runtime package can render without development tools installed.
+- Host code can mix high-level editor-core calls with raw MLT++ calls and observe changes on the same object graph.
+- High-level wrappers preserve clear MLT object ownership and runtime/factory lifetime.
+- Native and high-level producers, tracks, filters, transitions, and keyframes serialize to/reload from generic MLT XML.
+- Render presets produce verified MP4/AAC and float-WAV outputs; unsupported/known-bad PCM16 WAV paths are reported.
+- Each render operates on an independent MLT graph snapshot.
+- Linux CMake package installs and can be consumed by a separate CMake project.
