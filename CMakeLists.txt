@@ -26,6 +26,7 @@ target_include_directories(editor_core
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 target_link_libraries(editor_core PUBLIC PkgConfig::MLTXX)
+set_target_properties(editor_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_options(editor_core PRIVATE -Wall -Wextra -Wpedantic)
 
 install(TARGETS editor_core
