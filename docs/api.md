@@ -14,31 +14,31 @@ cmake --install build --prefix build/stage
 Downstream CMake:
 
 ```cmake
-find_package(EditorCore CONFIG REQUIRED)
-target_link_libraries(my_app PRIVATE editor_core::editor_core)
+find_package(ReelKitMlt CONFIG REQUIRED)
+target_link_libraries(my_app PRIVATE reelkit::mlt)
 ```
 
 ## Mixed high-level and native calls
 
 ```cpp
-#include <editor_core/editor_core.hpp>
+#include <reelkit_mlt/reelkit_mlt.hpp>
 
 int main()
 {
-    editor_core::Runtime runtime;
-    editor_core::ProfileSpec settings;
+    reelkit::mlt::Runtime runtime;
+    reelkit::mlt::ProfileSpec settings;
     settings.width = 640;
     settings.height = 360;
     settings.frameRate = {30, 1};
-    editor_core::Profile profile(runtime, settings);
+    reelkit::mlt::Profile profile(runtime, settings);
 
-    editor_core::Timeline timeline(profile);
-    auto video = timeline.addTrack(editor_core::TrackKind::Video, "main");
+    reelkit::mlt::Timeline timeline(profile);
+    auto video = timeline.addTrack(reelkit::mlt::TrackKind::Video, "main");
 
     // Native MLT++ producer passed directly to the convenience API.
     Mlt::Producer red(profile.native(), "color:red");
     red.set("out", 89);
-    video.append(red, editor_core::FrameRange(0, 90));
+    video.append(red, reelkit::mlt::FrameRange(0, 90));
 
     // Native MLT++ mutation of the exact Playlist wrapped by Track.
     Mlt::Filter title(profile.native(), "qtext", "");
@@ -47,13 +47,13 @@ int main()
     video.native().attach(title);
 
     // Or use the convenience helper; it also mutates that same Playlist.
-    auto helperTitle = video.addText(editor_core::TextSpec{
-        .text = "editor-core helper",
+    auto helperTitle = video.addText(reelkit::mlt::TextSpec{
+        .text = "reelkit-mlt helper",
         .size = 30,
         .opacity = 0.8,
     });
 
-    auto output = editor_core::RenderSpec::mp4("build/output/mixed.mp4");
+    auto output = reelkit::mlt::RenderSpec::mp4("build/output/mixed.mp4");
     output.enableAudio = false;
     const auto result = timeline.render(output);
     timeline.saveMltXml("build/output/mixed.mlt");
@@ -61,12 +61,12 @@ int main()
 }
 ```
 
-`FrameRange(start, end)` is half-open: start is included and end is excluded. editor-core converts it to MLT's inclusive out frame. `Track::native()` and `Timeline::native()` return references to the owned live MLT++ objects. Those references must not outlive the owning wrapper and its Runtime.
+`FrameRange(start, end)` is half-open: start is included and end is excluded. reelkit-mlt converts it to MLT's inclusive out frame. `Track::native()` and `Timeline::native()` return references to the owned live MLT++ objects. Those references must not outlive the owning wrapper and its Runtime.
 
 `Timeline::startRender()` returns a managed asynchronous job:
 
 ```cpp
-auto job = timeline.startRender(editor_core::RenderSpec::mp4("output.mp4"));
+auto job = timeline.startRender(reelkit::mlt::RenderSpec::mp4("output.mp4"));
 job.start();
 while (job.isRunning()) {
     const auto p = job.progress();
@@ -84,8 +84,8 @@ auto result = job.wait();
 ## Loading Native MLT XML
 
 ```cpp
-auto document = editor_core::MltDocument::load(profile, "input.mlt");
-const auto output = document.render(editor_core::RenderSpec::mp4("output.mp4"));
+auto document = reelkit::mlt::MltDocument::load(profile, "input.mlt");
+const auto output = document.render(reelkit::mlt::RenderSpec::mp4("output.mp4"));
 ```
 
 `MltDocument` keeps the graph native and does not invent a Project schema for arbitrary MLT services. XML snapshots are used for isolated render consumers.

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <editor_core/profile.hpp>
+#include <reelkit/mlt/profile.hpp>
 #include <mlt++/MltFilter.h>
 #include <mlt++/MltPlaylist.h>
 #include <mlt++/MltProducer.h>
@@ -10,7 +10,7 @@
 #include <memory>
 #include <string>
 
-namespace editor_core {
+namespace reelkit::mlt {
 namespace detail {
 struct TrackState;
 }
@@ -41,4 +41,4 @@ private:
     friend class Timeline;
 };
 
-} // namespace editor_core
+} // namespace reelkit::mlt

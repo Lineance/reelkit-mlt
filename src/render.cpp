@@ -1,4 +1,4 @@
-#include <editor_core/render.hpp>
+#include <reelkit/mlt/render.hpp>
 
 #include "detail/state.hpp"
 
@@ -8,7 +8,7 @@
 #include <thread>
 #include <utility>
 
-namespace editor_core::detail {
+namespace reelkit::mlt::detail {
 namespace {
 void ensureOutputDirectory(const std::filesystem::path &path)
 {
@@ -201,9 +201,9 @@ std::unique_ptr<RenderJobState> createRenderJob(std::shared_ptr<ProfileState> pr
     return std::make_unique<RenderJobState>(std::move(profile), xml, frames, spec);
 }
 
-} // namespace editor_core::detail
+} // namespace reelkit::mlt::detail
 
-namespace editor_core {
+namespace reelkit::mlt {
 
 RenderJob::RenderJob(std::unique_ptr<detail::RenderJobState> state)
     : state_(std::move(state))
@@ -245,4 +245,4 @@ RenderResult RenderJob::wait()
     return state_->wait();
 }
 
-} // namespace editor_core
+} // namespace reelkit::mlt

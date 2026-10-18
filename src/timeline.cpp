@@ -1,20 +1,20 @@
-#include <editor_core/timeline.hpp>
+#include <reelkit/mlt/timeline.hpp>
 
 #include "detail/state.hpp"
 
 #include <climits>
 #include <utility>
 
-namespace editor_core::detail {
+namespace reelkit::mlt::detail {
 
 TimelineState::TimelineState(std::shared_ptr<ProfileState> profileState)
     : profile(std::move(profileState))
     , tractor(profile->native)
 {}
 
-} // namespace editor_core::detail
+} // namespace reelkit::mlt::detail
 
-namespace editor_core {
+namespace reelkit::mlt {
 using detail::requireMlt;
 
 Timeline::Timeline(const Profile &profile)
@@ -86,4 +86,4 @@ RenderResult Timeline::render(const RenderSpec &spec) const
     return job.wait();
 }
 
-} // namespace editor_core
+} // namespace reelkit::mlt

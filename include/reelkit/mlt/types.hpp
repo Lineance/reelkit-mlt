@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <optional>
 
-namespace editor_core {
+namespace reelkit::mlt {
 
 enum class ErrorCode {
     InvalidArgument,
@@ -78,4 +78,4 @@ struct TextSpec {
     double opacity{1.0};
 };
 
-} // namespace editor_core
+} // namespace reelkit::mlt

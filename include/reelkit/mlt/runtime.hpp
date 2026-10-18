@@ -1,6 +1,6 @@
 #pragma once
 
-#include <editor_core/types.hpp>
+#include <reelkit/mlt/types.hpp>
 #include <mlt++/MltRepository.h>
 
 #include <filesystem>
@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace editor_core {
+namespace reelkit::mlt {
 namespace detail {
 struct RuntimeState;
 }
@@ -36,4 +36,4 @@ private:
     friend class Profile;
 };
 
-} // namespace editor_core
+} // namespace reelkit::mlt

@@ -1,8 +1,8 @@
-#include <editor_core/profile.hpp>
+#include <reelkit/mlt/profile.hpp>
 
 #include "detail/state.hpp"
 
-namespace editor_core::detail {
+namespace reelkit::mlt::detail {
 
 ProfileState::ProfileState(std::shared_ptr<RuntimeState> runtimeState, ProfileSpec profileSettings)
     : runtime(std::move(runtimeState))
@@ -31,9 +31,9 @@ ProfileState::ProfileState(std::shared_ptr<RuntimeState> runtimeState, ProfileSp
         throw Error(ErrorCode::InvalidArgument, "MLT rejected the requested profile");
 }
 
-} // namespace editor_core::detail
+} // namespace reelkit::mlt::detail
 
-namespace editor_core {
+namespace reelkit::mlt {
 
 Profile::Profile(const Runtime &runtime, ProfileSpec settings)
     : state_(std::make_shared<detail::ProfileState>(runtime.state_, std::move(settings)))
@@ -54,4 +54,4 @@ double Profile::fps() const
     return state_->native.fps();
 }
 
-} // namespace editor_core
+} // namespace reelkit::mlt

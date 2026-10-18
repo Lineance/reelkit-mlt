@@ -1,4 +1,4 @@
-#include <editor_core/track.hpp>
+#include <reelkit/mlt/track.hpp>
 
 #include "detail/state.hpp"
 
@@ -6,7 +6,7 @@
 #include <climits>
 #include <utility>
 
-namespace editor_core::detail {
+namespace reelkit::mlt::detail {
 
 TrackState::TrackState(std::shared_ptr<ProfileState> profileState, TrackKind trackKind,
                        std::string trackName, std::size_t trackIndex)
@@ -17,9 +17,9 @@ TrackState::TrackState(std::shared_ptr<ProfileState> profileState, TrackKind tra
     , playlist(profile->native)
 {}
 
-} // namespace editor_core::detail
+} // namespace reelkit::mlt::detail
 
-namespace editor_core {
+namespace reelkit::mlt {
 using detail::requireMlt;
 
 Track::Track(std::shared_ptr<detail::TrackState> state)
@@ -136,4 +136,4 @@ Mlt::Playlist &Track::native() const
     return state_->playlist;
 }
 
-} // namespace editor_core
+} // namespace reelkit::mlt

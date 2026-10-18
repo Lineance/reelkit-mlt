@@ -1,9 +1,9 @@
-#include <editor_core/render.hpp>
+#include <reelkit/mlt/render.hpp>
 
 #include <climits>
 #include <utility>
 
-namespace editor_core::detail {
+namespace reelkit::mlt::detail {
 
 void requireMlt(bool condition, ErrorCode code, const std::string &message)
 {
@@ -11,9 +11,9 @@ void requireMlt(bool condition, ErrorCode code, const std::string &message)
         throw Error(code, message);
 }
 
-} // namespace editor_core::detail
+} // namespace reelkit::mlt::detail
 
-namespace editor_core {
+namespace reelkit::mlt {
 
 Error::Error(ErrorCode code, std::string message)
     : std::runtime_error(std::move(message))
@@ -82,4 +82,4 @@ RenderSpec RenderSpec::floatWav(std::filesystem::path target)
     return spec;
 }
 
-} // namespace editor_core
+} // namespace reelkit::mlt

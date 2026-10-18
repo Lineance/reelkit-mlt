@@ -1,6 +1,6 @@
 #pragma once
 
-#include <editor_core/timeline.hpp>
+#include <reelkit/mlt/timeline.hpp>
 #include <mlt++/MltProducer.h>
 
 #include <filesystem>
@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace editor_core {
+namespace reelkit::mlt {
 
 struct RenderSpec {
     std::filesystem::path target;
@@ -90,4 +90,4 @@ private:
     std::shared_ptr<detail::MltDocumentState> state_;
 };
 
-} // namespace editor_core
+} // namespace reelkit::mlt

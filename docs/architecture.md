@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`editor-core` is a C++ library that makes common MLT++ operations easier while preserving access to MLT's native object graph and services. It does not define a complete nonlinear-editor application or a mandatory declarative Project format.
+`reelkit-mlt` is a C++ library that makes common MLT++ operations easier while preserving access to MLT's native object graph and services. It does not define a complete nonlinear-editor application or a mandatory declarative Project format.
 
 The core relationship is:
 
@@ -10,7 +10,7 @@ The core relationship is:
 Host C++ application
        |
        v
-editor-core convenience API <----> native MLT++ calls
+reelkit-mlt convenience API <----> native MLT++ calls
        |                                  |
        +------------- same graph ----------+
                           |
@@ -20,7 +20,7 @@ editor-core convenience API <----> native MLT++ calls
               avformat module / FFmpeg
 ```
 
-The convenience facade owns or references actual MLT++ objects. `native()` returns the live object, not a converted copy. If host code adds a filter through `Mlt::Playlist::attach()`, later editor-core operations see that filter; if editor-core appends a producer, raw MLT++ code sees it in the same playlist.
+The convenience facade owns or references actual MLT++ objects. `native()` returns the live object, not a converted copy. If host code adds a filter through `Mlt::Playlist::attach()`, later reelkit-mlt operations see that filter; if reelkit-mlt appends a producer, raw MLT++ code sees it in the same playlist.
 
 ## MLT++ Object Mapping
 
@@ -33,14 +33,14 @@ The API follows MLT's existing hierarchy:
 - Native clips/producers, filters, transitions, and consumers remain MLT++ objects, accessible through overloads and `native()` references.
 - `MltDocument` wraps a loaded MLT producer graph without attempting to reconstruct a separate high-level timeline model.
 
-MLT++ service wrappers inherit shared property and service behavior. MLT wrappers use reference-counted service handles, so editor-core wrapper lifetime must be explicit: native references are valid only while the owning wrapper/runtime remains alive. High-level wrappers are handles to the native graph, not value copies of an independent timeline.
+MLT++ service wrappers inherit shared property and service behavior. MLT wrappers use reference-counted service handles, so reelkit-mlt wrapper lifetime must be explicit: native references are valid only while the owning wrapper/runtime remains alive. High-level wrappers are handles to the native graph, not value copies of an independent timeline.
 
 ## API Layers
 
 ### Native facade
 
 - Owns Runtime/Profile and provides typed access to common MLT services.
-- Maps errors, invalid service creation, and frame-range validation to `editor_core::Error`.
+- Maps errors, invalid service creation, and frame-range validation to `reelkit::mlt::Error`.
 - Exposes the underlying `Mlt::` object reference for advanced calls and third-party MLT services.
 - Queries the loaded MLT repository so helper methods can report missing services.
 
@@ -67,12 +67,12 @@ The consumer may mutate internal state while rendering. An earlier test crashed 
 
 ## Project JSON Boundary
 
-Project JSON is not a prerequisite for using editor-core. If a host application later needs stable Asset IDs, templates, datasets, HTML scene provenance, or schema migration, add a separate `editor_project` adapter that builds an editor-core graph. It may also persist application metadata alongside MLT XML. It must not silently claim to serialize arbitrary raw MLT services in a separate shadow timeline model.
+Project JSON is not a prerequisite for using reelkit-mlt. If a host application later needs stable Asset IDs, templates, datasets, HTML scene provenance, or schema migration, add a separate `editor_project` adapter that builds an reelkit-mlt graph. It may also persist application metadata alongside MLT XML. It must not silently claim to serialize arbitrary raw MLT services in a separate shadow timeline model.
 
 Other optional adapters, such as OTIO or HyperFrames orchestration, also belong above or beside the core library:
 
 - OTIO maps only the subset its interchange schema can represent.
-- HyperFrames generates alpha media; editor-core accepts that media as a native MLT producer.
+- HyperFrames generates alpha media; reelkit-mlt accepts that media as a native MLT producer.
 
 ## Linux Runtime
 

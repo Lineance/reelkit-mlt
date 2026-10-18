@@ -1,13 +1,13 @@
 #pragma once
 
-#include <editor_core/track.hpp>
+#include <reelkit/mlt/track.hpp>
 #include <mlt++/MltTractor.h>
 
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace editor_core {
+namespace reelkit::mlt {
 namespace detail {
 struct TimelineState;
 }
@@ -37,4 +37,4 @@ private:
     std::shared_ptr<detail::TimelineState> state_;
 };
 
-} // namespace editor_core
+} // namespace reelkit::mlt

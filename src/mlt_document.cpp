@@ -1,4 +1,4 @@
-#include <editor_core/render.hpp>
+#include <reelkit/mlt/render.hpp>
 
 #include "detail/state.hpp"
 
@@ -6,7 +6,7 @@
 #include <utility>
 #include <utility>
 
-namespace editor_core::detail {
+namespace reelkit::mlt::detail {
 
 MltDocumentState::MltDocumentState(std::shared_ptr<ProfileState> profileState,
                                    Mlt::Producer rootProducer)
@@ -14,9 +14,9 @@ MltDocumentState::MltDocumentState(std::shared_ptr<ProfileState> profileState,
     , producer(rootProducer)
 {}
 
-} // namespace editor_core::detail
+} // namespace reelkit::mlt::detail
 
-namespace editor_core {
+namespace reelkit::mlt {
 
 MltDocument::MltDocument(std::shared_ptr<detail::MltDocumentState> state)
     : state_(std::move(state))
@@ -61,4 +61,4 @@ RenderResult MltDocument::render(const RenderSpec &spec) const
     return job.wait();
 }
 
-} // namespace editor_core
+} // namespace reelkit::mlt

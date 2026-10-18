@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
-project(editor_core_downstream_consumer LANGUAGES CXX)
+project(reelkit_mlt_consumer LANGUAGES CXX)
 
-find_package(EditorCore CONFIG REQUIRED)
+find_package(ReelKitMlt CONFIG REQUIRED)
 
-add_executable(editor_core_consumer main.cpp)
-target_link_libraries(editor_core_consumer PRIVATE editor_core::editor_core)
+add_executable(reelkit_mlt_consumer main.cpp)
+target_link_libraries(reelkit_mlt_consumer PRIVATE reelkit::mlt)

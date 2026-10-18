@@ -1,4 +1,4 @@
-#include <editor_core/runtime.hpp>
+#include <reelkit/mlt/runtime.hpp>
 #include <mlt++/MltFactory.h>
 
 #include "detail/state.hpp"
@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <mutex>
 
-namespace editor_core::detail {
+namespace reelkit::mlt::detail {
 
 RuntimeState::RuntimeState(const RuntimeOptions &options)
     : moduleDirectory(options.moduleDirectory.lexically_normal().string())
@@ -25,9 +25,9 @@ RuntimeState::~RuntimeState()
     Mlt::Factory::close();
 }
 
-} // namespace editor_core::detail
+} // namespace reelkit::mlt::detail
 
-namespace editor_core {
+namespace reelkit::mlt {
 namespace {
 std::mutex runtimeMutex;
 std::weak_ptr<detail::RuntimeState> activeRuntime;
@@ -119,4 +119,4 @@ Mlt::Repository &Runtime::nativeRepository() const
     return *state_->repository;
 }
 
-} // namespace editor_core
+} // namespace reelkit::mlt

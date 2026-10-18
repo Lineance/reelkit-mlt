@@ -1,11 +1,11 @@
 #pragma once
 
-#include <editor_core/runtime.hpp>
+#include <reelkit/mlt/runtime.hpp>
 #include <mlt++/MltProfile.h>
 
 #include <memory>
 
-namespace editor_core {
+namespace reelkit::mlt {
 namespace detail {
 struct ProfileState;
 }
@@ -25,4 +25,4 @@ private:
     friend class MltDocument;
 };
 
-} // namespace editor_core
+} // namespace reelkit::mlt

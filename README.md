@@ -1,6 +1,6 @@
-# editor-core
+# reelkit-mlt
 
-`editor-core` is a Linux-first C++20 convenience library over MLT++. It keeps MLT services and object graphs native while adding safer ownership, frame-range helpers, timeline construction, render presets, and an explicit `native()` escape hatch.
+`reelkit-mlt` is a Linux-first C++20 convenience library over MLT++. It keeps MLT services and object graphs native while adding safer ownership, frame-range helpers, timeline construction, render presets, and an explicit `native()` escape hatch.
 
 It is a library, not a full editor application. It does not require Project JSON, a UI, a workflow engine, Shotcut, or OTIO.
 
@@ -42,7 +42,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-The library installs a CMake package named `EditorCore` and target `editor_core::editor_core`:
+The library installs a CMake package named `ReelKitMlt` and target `reelkit::mlt`:
 
 ```bash
 cmake --install build --prefix build/stage

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <editor_core/editor_core.hpp>
+#include <reelkit/mlt/reelkit_mlt.hpp>
 #include <mlt++/MltConsumer.h>
 
 #include <atomic>
@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace editor_core::detail {
+namespace reelkit::mlt::detail {
 
 struct RuntimeState {
     explicit RuntimeState(const RuntimeOptions &options);
@@ -85,4 +85,4 @@ std::unique_ptr<RenderJobState> createRenderJob(std::shared_ptr<ProfileState> pr
                                                 const RenderSpec &spec);
 void requireMlt(bool condition, ErrorCode code, const std::string &message);
 
-} // namespace editor_core::detail
+} // namespace reelkit::mlt::detail

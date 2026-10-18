@@ -14,7 +14,7 @@ Runtime, Profile, FrameRange, Track, Timeline, RenderSpec, MltDocument, and expl
 
 `RenderJob` wraps the MLT consumer with start/progress/cancel/wait. Timeline rendering snapshots the live native graph through MLT XML and constructs a fresh graph per consumer. Generic MLT XML load/save and an installed downstream CMake consumer test pass.
 
-Gate passed: direct and reloaded renders match for video; package consumer finds, links, and runs `editor_core::editor_core`.
+Gate passed: direct and reloaded renders match for video; package consumer finds, links, and runs `reelkit::mlt`.
 
 ## Phase 3: Common convenience API — current
 
@@ -28,7 +28,7 @@ Test install/export CMake config on clean Ubuntu 24.04. Pin supported MLT 7 vers
 
 ## Phase 5: Optional adapters
 
-If a host application needs them, add separate Project JSON, OTIO, or HyperFrames adapters. They call editor-core APIs and remain outside the core library dependency surface.
+If a host application needs them, add separate Project JSON, OTIO, or HyperFrames adapters. They call reelkit-mlt APIs and remain outside the core library dependency surface.
 
 ## Rough Estimate
 
@@ -36,7 +36,7 @@ The current implementation establishes the API skeleton and native interop test.
 
 ## v1 Acceptance
 
-- Host code can mix high-level editor-core calls with raw MLT++ calls and observe changes on the same object graph.
+- Host code can mix high-level reelkit-mlt calls with raw MLT++ calls and observe changes on the same object graph.
 - High-level wrappers preserve clear MLT object ownership and runtime/factory lifetime.
 - Native and high-level producers, tracks, filters, transitions, and keyframes serialize to/reload from generic MLT XML.
 - Render presets produce verified MP4/AAC and float-WAV outputs; unsupported/known-bad PCM16 WAV paths are reported.

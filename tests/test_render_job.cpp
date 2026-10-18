@@ -1,5 +1,5 @@
 #include "test_support.hpp"
-#include <editor_core/editor_core.hpp>
+#include <reelkit/mlt/reelkit_mlt.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -8,22 +8,22 @@
 int main(int argc, char **argv)
 {
     try {
-        editor_core::Runtime runtime;
-        editor_core::ProfileSpec settings;
+        reelkit::mlt::Runtime runtime;
+        reelkit::mlt::ProfileSpec settings;
         settings.width = 640;
         settings.height = 360;
         settings.frameRate = {30, 1};
-        editor_core::Profile profile(runtime, settings);
+        reelkit::mlt::Profile profile(runtime, settings);
         const auto output = mlt_test::outputDirectory(argc, argv, "render-job");
 
-        editor_core::Timeline timeline(profile);
-        auto video = timeline.addTrack(editor_core::TrackKind::Video, "long synthetic source");
+        reelkit::mlt::Timeline timeline(profile);
+        auto video = timeline.addTrack(reelkit::mlt::TrackKind::Video, "long synthetic source");
         Mlt::Producer color(profile.native(), "color:green");
         mlt_test::require(color.is_valid(), "Color producer unavailable");
         color.set("out", 2999);
-        video.append(color, editor_core::FrameRange(0, 3000));
+        video.append(color, reelkit::mlt::FrameRange(0, 3000));
 
-        auto spec = editor_core::RenderSpec::mp4(output / "cancelled.mp4");
+        auto spec = reelkit::mlt::RenderSpec::mp4(output / "cancelled.mp4");
         spec.enableAudio = false;
         spec.consumerProperties["real_time"] = "1";
         auto job = timeline.startRender(spec);

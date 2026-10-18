@@ -5,8 +5,8 @@ The implementation is organized as a C++ library with separate public headers an
 ## Public Headers
 
 ```text
-include/editor_core/
-  editor_core.hpp   # umbrella include
+include/reelkit_mlt/
+  reelkit_mlt.hpp   # umbrella include
   types.hpp         # errors, profiles, rational rates, frame ranges, track kinds
   runtime.hpp       # MLT factory lifetime and service discovery
   profile.hpp       # Profile wrapper and native() access
@@ -33,10 +33,10 @@ src/
 
 ### Runtime
 
-- Initialize `Mlt::Factory` once per process and retain the MLT repository while any editor-core objects exist.
+- Initialize `Mlt::Factory` once per process and retain the MLT repository while any reelkit-mlt objects exist.
 - Share one Runtime state across copied Runtime handles; reject conflicting module directories in one process.
 - Expose producer/filter/transition/consumer service discovery and `nativeRepository()` for advanced MLT++ use.
-- Ensure all editor-core MLT objects retain Runtime state for their lifetime.
+- Ensure all reelkit-mlt MLT objects retain Runtime state for their lifetime.
 
 ### Profile
 
@@ -74,17 +74,17 @@ src/
 ## Dependency Direction
 
 ```text
-editor-core native facade -> libmlt++ -> libmlt modules -> FFmpeg/other module deps
-host application -> editor_core::editor_core
-optional editor_project adapter -> editor_core API
-optional OTIO/HyperFrames adapters -> host application + editor-core as needed
+reelkit-mlt native facade -> libmlt++ -> libmlt modules -> FFmpeg/other module deps
+host application -> reelkit::mlt
+optional editor_project adapter -> reelkit_mlt API
+optional OTIO/HyperFrames adapters -> host application + reelkit-mlt as needed
 ```
 
 The library does not depend on Project JSON, a UI framework, a workflow engine, Shotcut, OTIO, or HyperFrames.
 
 ## Native Interoperability Contract
 
-- All `native()` methods return references to the exact MLT++ objects owned by editor-core wrappers.
+- All `native()` methods return references to the exact MLT++ objects owned by reelkit-mlt wrappers.
 - No copy/translation occurs when crossing from high-level helpers to raw MLT++.
 - Host code must not retain a native reference beyond the lifetime of its owning Runtime/Profile/Track/Timeline handle.
 - Raw MLT services/properties remain available even if the convenience API does not model their parameters.
@@ -92,8 +92,8 @@ The library does not depend on Project JSON, a UI framework, a workflow engine, 
 
 ## Build and Installation
 
-- CMake target: `editor_core::editor_core`.
+- CMake target: `reelkit::mlt`.
 - Build against `pkg-config` module `mlt++-7`.
-- Install headers, static library, exported CMake targets, and `EditorCoreConfig.cmake`.
+- Install headers, static library, exported CMake targets, and `ReelKitMltConfig.cmake`.
 - No stable binary ABI is promised across MLT versions; consumers build against the declared MLT 7 runtime.
 - Do not bundle optional plugin packs unless a named API feature requires them and the license/dependency inventory is complete.

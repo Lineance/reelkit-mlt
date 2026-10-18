@@ -4,7 +4,7 @@ Status values: **Accepted** means the current implementation follows the choice;
 
 ## Accepted
 
-### editor-core is a C++ library over MLT++
+### reelkit-mlt is a C++ library over MLT++
 
 It is not a standalone NLE, Project authoring application, worker service, or Project JSON runtime. It provides a convenient API over MLT++ and lets callers use native MLT++ on the same graph.
 
@@ -26,7 +26,7 @@ MLT's avformat module uses FFmpeg; adopting this wrapper does not remove FFmpeg.
 
 ### Project JSON is a separate upper-layer adapter
 
-A future application may compile Project JSON into editor-core calls and persist its own data/template/Asset ID metadata. Project JSON is not required by the library and must not duplicate the live MLT graph as a second source of truth.
+A future application may compile Project JSON into reelkit-mlt calls and persist its own data/template/Asset ID metadata. Project JSON is not required by the library and must not duplicate the live MLT graph as a second source of truth.
 
 ## Proposed
 
@@ -40,7 +40,7 @@ Serialize the current graph through MLT XML in memory, reload with `xml-string`,
 
 ### C++20 and CMake package
 
-Use C++20, an exported `editor_core::editor_core` CMake target, and the system MLT++ package. Source/API compatibility is versioned; no cross-MLT binary ABI guarantee is made.
+Use C++20, an exported `reelkit::mlt` CMake target, and the system MLT++ package. Source/API compatibility is versioned; no cross-MLT binary ABI guarantee is made.
 
 ## Open for Later Adapters
 
