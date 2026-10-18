@@ -1,6 +1,6 @@
 # reelkit-mlt
 
-`reelkit-mlt` is a Linux-first C++20 convenience library over MLT++. It keeps MLT services and object graphs native while adding safer ownership, frame-range helpers, timeline construction, render presets, and an explicit `native()` escape hatch.
+`reelkit-mlt` is a C++20 convenience library over MLT++. It keeps MLT services and object graphs native while adding safer ownership, frame-range helpers, timeline construction, render presets, and an explicit `native()` escape hatch.
 
 It is a library, not a full editor application. It does not require Project JSON, a UI, a workflow engine, Shotcut, or OTIO.
 
