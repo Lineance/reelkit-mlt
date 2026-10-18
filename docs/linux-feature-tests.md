@@ -14,14 +14,14 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Latest run: **4/4 tests passed**.
+Latest full run: **4/4 tests passed**.
 
 ## Independent scenarios
 
 | CTest target | Coverage | Result |
 |---|---|---|
 | `test_timeline` | Two 90-frame color clips, 15-frame `luma` dissolve, expected 165-frame duration, MLT XML reopen and second render | Passed; direct and reopened video have identical decoded frame hashes |
-| `test_audio` | 440/660 Hz tone producers, `mix` transition, `avformat` WAV output | Passed structurally; WAV is PCM s16le, 48 kHz stereo, 6 seconds, and non-silent |
+| `test_audio` | Direct tone PCM checks, 440/660 Hz tone producers, `mix` transition, PCM16 WAV, float WAV, and AAC/M4A consumers | Producer frame and float/AAC paths preserve the requested attenuation; PCM16 WAV output remains anomalously loud |
 | `test_text_keyframes` | `qtext` opacity animation from 0 to 1 over 20 frames, XML serialization and render | Passed; XML contains `opacity=0=0;20=1`, extracted frames show the fade |
 | `test_alpha_overlay` | Semi-transparent qtext over a red video producer | Passed; extracted frame shows the underlying red with blended text |
 
@@ -29,9 +29,13 @@ Artifacts are under the ignored `build/test-artifacts/` directory. The test sour
 
 ## Audio level follow-up
 
-The audio test renders one 440 Hz tone with `level=0` and another with `level=-24`, plus a mixed 440/660 Hz timeline. All files have valid 48 kHz stereo PCM and expected duration. However, FFmpeg `volumedetect` reports almost identical single-tone levels for the `level=0` and `level=-24` sources (around -5.4/-5.5 dB mean and approximately 0 dB peak). This does **not** validate MLT's tone level scaling or final headroom. Keep gain/limiting behavior open and isolate it before relying on these properties in Project rendering.
+The audio test directly reads an `mlt_audio_float` frame and asserts that `level=-24` matches the expected `10^(-24/20)` peak ratio versus `level=0`; this passes. A `pcm_f32le` WAV preserves -24 dBFS (about -27 dB mean, -24 dB peak), and the AAC/M4A output preserves the average level (about -27 dB mean for a single tone). A mixed AAC/M4A render is non-silent and measures about -28.9 dB mean.
 
-The current CTest audio case asserts valid graph duration and output creation; it does not yet assert frequency content, mix balance, fade curve, or clipping/headroom.
+The PCM s16le WAV consumer output is anomalous: it measures near full-scale (about -5.5 dB mean) for the same -24 dB producer, even with `mlt_audio_format=f32le`. Do not rely on MLT 7.22's PCM16 WAV path until this conversion behavior is isolated. The mixed AAC/M4A decoded sample peak is higher than the source peak, so true-peak/headroom still needs a tolerance test.
+
+Reusing the same audio Tractor sequentially for WAV and AAC consumers caused a segmentation fault in an earlier test. Constructing a fresh graph per consumer avoids the crash. Treat graph reuse across consumers as unsupported until verified.
+
+The CTest audio case asserts producer-frame level ratio, float-WAV amplitude bounds, graph duration, and output file creation. It does not yet assert AAC true-peak, precise mix balance, fade curve, or PCM16 headroom.
 
 ## Plugin availability
 

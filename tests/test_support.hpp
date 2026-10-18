@@ -72,13 +72,17 @@ inline void renderVideo(Mlt::Profile &profile,
             "Video output was not created");
 }
 
-inline void configureAudioConsumer(Mlt::Consumer &consumer)
+inline void configureAudioConsumer(Mlt::Consumer &consumer,
+                                  const char *codec = "pcm_s16le",
+                                  const char *sampleFormat = "s16",
+                                  const char *container = "wav")
 {
     consumer.set("vn", 1);
     consumer.set("an", 0);
     consumer.set("audio_off", 0);
-    consumer.set("f", "wav");
-    consumer.set("acodec", "pcm_s16le");
+    consumer.set("f", container);
+    consumer.set("acodec", codec);
+    consumer.set("mlt_audio_format", sampleFormat);
     consumer.set("ar", 48000);
     consumer.set("channels", 2);
     consumer.set("real_time", -1);
@@ -86,11 +90,14 @@ inline void configureAudioConsumer(Mlt::Consumer &consumer)
 
 inline void renderAudio(Mlt::Profile &profile,
                         Mlt::Service &graph,
-                        const std::filesystem::path &path)
+                        const std::filesystem::path &path,
+                        const char *codec = "pcm_s16le",
+                        const char *sampleFormat = "s16",
+                        const char *container = "wav")
 {
     Mlt::Consumer consumer(profile, "avformat", path.c_str());
     require(consumer.is_valid(), "MLT avformat audio consumer unavailable");
-    configureAudioConsumer(consumer);
+    configureAudioConsumer(consumer, codec, sampleFormat, container);
     require(consumer.connect(graph) == 0, "Could not connect audio graph to consumer");
     require(consumer.run() == 0, "MLT audio rendering failed");
     require(std::filesystem::is_regular_file(path) && std::filesystem::file_size(path) > 0,
