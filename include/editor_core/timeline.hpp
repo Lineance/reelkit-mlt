@@ -13,6 +13,7 @@ struct TimelineState;
 }
 struct RenderSpec;
 struct RenderResult;
+class RenderJob;
 
 class Timeline {
 public:
@@ -29,6 +30,7 @@ public:
 
     Mlt::Tractor &native() const;
     void saveMltXml(const std::filesystem::path &path) const;
+    RenderJob startRender(const RenderSpec &spec) const;
     RenderResult render(const RenderSpec &spec) const;
 
 private:

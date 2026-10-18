@@ -63,6 +63,24 @@ int main()
 
 `FrameRange(start, end)` is half-open: start is included and end is excluded. editor-core converts it to MLT's inclusive out frame. `Track::native()` and `Timeline::native()` return references to the owned live MLT++ objects. Those references must not outlive the owning wrapper and its Runtime.
 
+`Timeline::startRender()` returns a managed asynchronous job:
+
+```cpp
+auto job = timeline.startRender(editor_core::RenderSpec::mp4("output.mp4"));
+job.start();
+while (job.isRunning()) {
+    const auto p = job.progress();
+    // p.completedFrames / p.totalFrames
+}
+auto result = job.wait();
+```
+
+`Timeline::render()` is the synchronous convenience call and internally starts/waits for a RenderJob. `cancel()` stops the consumer; a cancelled result may refer to a partial output.
+
+## Render Jobs
+
+`Timeline::startRender()` returns a move-only RenderJob over a fresh XML snapshot. Call `start()`, poll `progress()`, and call `cancel()` if needed; `wait()` returns the final `RenderResult`. `Timeline::render()` is the synchronous convenience call and internally starts/waits for a job. A cancelled result is marked and may point to a partial file.
+
 ## Loading Native MLT XML
 
 ```cpp

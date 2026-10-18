@@ -14,7 +14,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Latest full run: **4/4 tests passed**.
+Latest full run: **7/7 tests passed**.
 
 ## Independent scenarios
 
@@ -24,8 +24,11 @@ Latest full run: **4/4 tests passed**.
 | `test_audio` | Direct tone PCM checks, 440/660 Hz tone producers, `mix` transition, PCM16 WAV, float WAV, and AAC/M4A consumers | Producer frame and float/AAC paths preserve the requested attenuation; PCM16 WAV output remains anomalously loud |
 | `test_text_keyframes` | `qtext` opacity animation from 0 to 1 over 20 frames, XML serialization and render | Passed; XML contains `opacity=0=0;20=1`, extracted frames show the fade |
 | `test_alpha_overlay` | Semi-transparent qtext over a red video producer | Passed; extracted frame shows the underlying red with blended text |
+| `test_native_interop` | Mix native MLT++ producers/filters with wrapper Track/Timeline calls, save/load MLT XML, render | Passed; all calls affect one graph |
+| `test_install_consumer` | Install the CMake package and build/run a separate consumer project | Passed |
+| `test_render_job` | Start/poll/cancel a long render job | Passed; cancellation stops the consumer and reports cancelled status |
 
-Artifacts are under the ignored `build/test-artifacts/` directory. The test sources are kept separate: `test_timeline.cpp`, `test_audio.cpp`, `test_text_keyframes.cpp`, and `test_alpha_overlay.cpp`; shared C++ helpers are in `test_support.hpp`.
+Artifacts are under the ignored `build/test-artifacts/` directory. Each capability uses a separate source file (`test_timeline.cpp`, `test_audio.cpp`, `test_text_keyframes.cpp`, `test_alpha_overlay.cpp`, `test_native_interop.cpp`, and `test_render_job.cpp`); shared MLT helpers are in `test_support.hpp`. `tests/package_consumer` validates the installed CMake target.
 
 ## Audio level follow-up
 

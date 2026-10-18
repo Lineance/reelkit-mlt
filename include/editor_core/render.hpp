@@ -34,12 +34,41 @@ struct RenderResult {
     FrameCount frames{0};
     RationalRate frameRate{};
     double durationSeconds{0.0};
+    bool cancelled{false};
     std::vector<std::string> warnings;
 };
 
+struct RenderProgress {
+    FrameCount completedFrames{0};
+    FrameCount totalFrames{0};
+    double fraction{0.0};
+};
+
 namespace detail {
+struct RenderJobState;
 struct MltDocumentState;
 }
+
+class RenderJob {
+public:
+    RenderJob(const RenderJob &) = delete;
+    RenderJob &operator=(const RenderJob &) = delete;
+    RenderJob(RenderJob &&) noexcept;
+    RenderJob &operator=(RenderJob &&) noexcept;
+    ~RenderJob();
+
+    void start();
+    void cancel();
+    bool isRunning() const;
+    RenderProgress progress() const;
+    RenderResult wait();
+
+private:
+    explicit RenderJob(std::unique_ptr<detail::RenderJobState> state);
+    std::unique_ptr<detail::RenderJobState> state_;
+    friend class Timeline;
+    friend class MltDocument;
+};
 
 class MltDocument {
 public:
@@ -53,6 +82,7 @@ public:
     Mlt::Producer &native() const;
     FrameCount durationFrames() const;
     void saveMltXml(const std::filesystem::path &path) const;
+    RenderJob startRender(const RenderSpec &spec) const;
     RenderResult render(const RenderSpec &spec) const;
 
 private:

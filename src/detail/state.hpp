@@ -1,7 +1,9 @@
 #pragma once
 
 #include <editor_core/editor_core.hpp>
+#include <mlt++/MltConsumer.h>
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>
@@ -53,14 +55,34 @@ struct MltDocumentState {
     Mlt::Producer producer;
 };
 
+struct RenderJobState {
+    RenderJobState(std::shared_ptr<ProfileState> profileState, const std::string &xml,
+                   FrameCount frameCount, RenderSpec renderSpec);
+    ~RenderJobState();
+
+    void start();
+    void cancel();
+    bool isRunning() const;
+    RenderProgress progress() const;
+    RenderResult wait();
+
+    std::shared_ptr<ProfileState> profile;
+    Mlt::Producer snapshot;
+    RenderSpec spec;
+    FrameCount totalFrames;
+    std::unique_ptr<Mlt::Consumer> consumer;
+    std::atomic<bool> started{false};
+    std::atomic<bool> cancelled{false};
+    std::atomic<bool> completed{false};
+};
+
 std::string graphXmlBuffer(Mlt::Profile &profile, Mlt::Service &graph);
 void writeGraphXml(Mlt::Profile &profile, Mlt::Service &graph,
                    const std::filesystem::path &path);
-RenderResult renderProducer(ProfileState &profile, Mlt::Producer &producer,
-                            FrameCount frames, const RenderSpec &spec);
-RenderResult renderSnapshot(ProfileState &profile, Mlt::Service &graph,
-                            FrameCount frames, const RenderSpec &spec);
-
+std::unique_ptr<RenderJobState> createRenderJob(std::shared_ptr<ProfileState> profile,
+                                                Mlt::Service &graph,
+                                                FrameCount frames,
+                                                const RenderSpec &spec);
 void requireMlt(bool condition, ErrorCode code, const std::string &message);
 
 } // namespace editor_core::detail

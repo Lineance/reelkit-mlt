@@ -48,12 +48,17 @@ void MltDocument::saveMltXml(const std::filesystem::path &path) const
     detail::writeGraphXml(state_->profile->native, state_->producer, path);
 }
 
+RenderJob MltDocument::startRender(const RenderSpec &spec) const
+{
+    return RenderJob(detail::createRenderJob(state_->profile, state_->producer,
+                                             durationFrames(), spec));
+}
+
 RenderResult MltDocument::render(const RenderSpec &spec) const
 {
-    const FrameCount frames = durationFrames();
-    if (frames <= 0)
-        throw Error(ErrorCode::InvalidGraph, "Cannot render an empty MLT document");
-    return detail::renderSnapshot(*state_->profile, state_->producer, frames, spec);
+    auto job = startRender(spec);
+    job.start();
+    return job.wait();
 }
 
 } // namespace editor_core

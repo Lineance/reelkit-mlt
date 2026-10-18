@@ -19,6 +19,7 @@ It is a library, not a full editor application. It does not require Project JSON
 - `Timeline` and `Track`: wrappers over a MLT `Tractor` and `Playlist`.
 - `FrameRange`: typed source in/out values with half-open semantics.
 - `RenderSpec`: MP4/AAC, M4A/AAC, and float-WAV presets plus raw consumer properties.
+- `RenderJob`: asynchronous start/progress/cancel/wait over an isolated graph snapshot.
 - `MltDocument`: load and operate on generic MLT XML graphs.
 - `native()`: returns a reference to the same `Mlt::` object owned by the wrapper.
 
@@ -55,4 +56,4 @@ The core exposes MLT services rather than reimplementing their effects. Optional
 
 ## Current Status
 
-The C++/MLT++ facade, native interop test, generic MLT XML round-trip, render presets, and Linux CMake install target are implemented. The current CTest suite is the executable API contract.
+The C++/MLT++ facade, native interop test, generic MLT XML round-trip, render presets, RenderJob lifecycle, and Linux CMake install target are implemented. The current CTest suite is the executable API contract.

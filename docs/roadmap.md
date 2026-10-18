@@ -10,13 +10,13 @@ Ubuntu 24.04/MLT 7.22 builds with CMake and links `libmlt++-7` directly. A synth
 
 Runtime, Profile, FrameRange, Track, Timeline, RenderSpec, MltDocument, and explicit `native()` handles are in separate headers/source modules. The native interop CTest proves raw producer/filter calls and high-level methods mutate the same graph.
 
-## Phase 2: Render and serialization contract — current
+## Phase 2: RenderJob and XML snapshot lifecycle — implemented
 
-Finalize graph snapshotting, MLT XML load/save, service discovery, and CMake package consumption. Add lifecycle tests for wrapper references, raw MLT mutation, and one-consumer-per-snapshot behavior.
+`RenderJob` wraps the MLT consumer with start/progress/cancel/wait. Timeline rendering snapshots the live native graph through MLT XML and constructs a fresh graph per consumer. Generic MLT XML load/save and an installed downstream CMake consumer test pass.
 
-Gate: an installed downstream CMake project can find `EditorCore`, link `editor_core::editor_core`, build a timeline, render, and load/save generic MLT XML.
+Gate passed: direct and reloaded renders match for video; package consumer finds, links, and runs `editor_core::editor_core`.
 
-## Phase 3: Common convenience API
+## Phase 3: Common convenience API — current
 
 Extend high-level operations for clip trims/speed, transition presets, qtext keyframes/geometry, audio routing/mix, and typed render profiles. All helpers must mutate native MLT services and retain the native escape hatch. Do not implement duplicate effects already available as MLT services.
 

@@ -53,7 +53,7 @@ MLT++ service wrappers inherit shared property and service behavior. MLT wrapper
 
 ## Render and XML Lifecycle
 
-The consumer may mutate internal state while rendering. An earlier test crashed when the same audio graph was sequentially connected to WAV and AAC consumers. Therefore, `Timeline::render()` serializes the live graph through MLT's XML consumer into a buffer, reloads a fresh graph with the `xml-string` producer, and connects that snapshot to a new consumer. This preserves raw MLT++ mutations while isolating each render job.
+The consumer may mutate internal state while rendering. An earlier test crashed when the same audio graph was sequentially connected to WAV and AAC consumers. Therefore, `Timeline::startRender()` serializes the live graph through MLT's XML consumer into a buffer, reloads a fresh graph with the `xml-string` producer, and gives that snapshot to one RenderJob/consumer. `RenderJob` exposes start, progress, cancellation, and wait; `Timeline::render()` is the synchronous convenience wrapper. This preserves raw MLT++ mutations while isolating each render.
 
 `Timeline::saveMltXml()` writes the graph to a file. `MltDocument::load()` reads generic MLT XML and gives callers a native producer handle. This is MLT graph serialization; it does not promise compatibility with any particular NLE GUI or private project conventions.
 

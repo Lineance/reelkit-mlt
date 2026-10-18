@@ -65,9 +65,11 @@ src/
 ### Render and MLT XML
 
 - `RenderSpec` has MP4/H.264/AAC, M4A/AAC, and float-WAV presets plus a string property map for consumer options.
-- `Timeline::render()` snapshots the live graph to MLT XML in memory, reloads a fresh `xml-string` producer, then renders with a new `avformat` consumer.
+- `RenderJob` wraps the MLT consumer lifecycle with `start`, `progress`, `cancel`, and `wait`.
+- `Timeline::render()` is the synchronous convenience call; it creates and waits on a RenderJob.
+- `Timeline::startRender()` returns a caller-managed RenderJob.
 - `Timeline::saveMltXml()` writes the graph; `MltDocument::load()` loads generic MLT XML into a native producer wrapper.
-- `RenderResult` reports target, frame count, rational frame rate, duration, and warnings.
+- `RenderResult` reports target, frame count, rational frame rate, duration, cancellation, and warnings.
 
 ## Dependency Direction
 
@@ -86,7 +88,7 @@ The library does not depend on Project JSON, a UI framework, a workflow engine, 
 - No copy/translation occurs when crossing from high-level helpers to raw MLT++.
 - Host code must not retain a native reference beyond the lifetime of its owning Runtime/Profile/Track/Timeline handle.
 - Raw MLT services/properties remain available even if the convenience API does not model their parameters.
-- Each render uses a fresh graph snapshot to avoid reusing consumer-mutated MLT audio graph state.
+`Timeline::startRender()` snapshots the live graph through MLT XML into a fresh producer before constructing a RenderJob. The job owns that snapshot and one consumer; progress and cancellation operate on the consumer's lifecycle. This avoids reusing consumer-mutated graph state. Native C++ calls made before the snapshot are preserved in the XML graph.
 
 ## Build and Installation
 

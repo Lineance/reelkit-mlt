@@ -73,12 +73,17 @@ void Timeline::saveMltXml(const std::filesystem::path &path) const
     detail::writeGraphXml(state_->profile->native, state_->tractor, path);
 }
 
-RenderResult Timeline::render(const RenderSpec &spec) const
+RenderJob Timeline::startRender(const RenderSpec &spec) const
 {
     const FrameCount frames = durationFrames();
-    if (frames <= 0)
-        throw Error(ErrorCode::InvalidGraph, "Cannot render an empty timeline");
-    return detail::renderSnapshot(*state_->profile, state_->tractor, frames, spec);
+    return RenderJob(detail::createRenderJob(state_->profile, state_->tractor, frames, spec));
+}
+
+RenderResult Timeline::render(const RenderSpec &spec) const
+{
+    auto job = startRender(spec);
+    job.start();
+    return job.wait();
 }
 
 } // namespace editor_core

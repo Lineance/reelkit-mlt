@@ -86,4 +86,10 @@ if(BUILD_TESTING)
             -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_package_consumer.cmake
     )
     set_tests_properties(test_install_consumer PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE)
+
+    add_executable(test_render_job tests/test_render_job.cpp)
+    target_link_libraries(test_render_job PRIVATE editor_core::editor_core)
+    add_test(NAME test_render_job
+             COMMAND test_render_job "${CMAKE_CURRENT_BINARY_DIR}/test-artifacts")
+    set_tests_properties(test_render_job PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE)
 endif()
